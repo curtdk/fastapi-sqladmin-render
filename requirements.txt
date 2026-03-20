@@ -1,8 +1,16 @@
+# Core dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
 sqladmin==0.16.0
 aiosqlite==0.19.0
 python-dotenv==1.0.0
+
+# Pydantic with specific versions to avoid build issues
 pydantic==2.5.0
+pydantic-core==2.14.0  # Binary wheel available version
 pydantic-settings==2.1.0
+
+# Build dependencies (ensure proper build environment)
+setuptools==68.0.0
+wheel==0.42.0

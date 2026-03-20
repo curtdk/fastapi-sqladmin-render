@@ -3,7 +3,7 @@ services:
     name: fastapi-sqladmin-demo
     env: python
     region: oregon  # 可选: singapore, frankfurt, ohio, oregon
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: DATABASE_URL
