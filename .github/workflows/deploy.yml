@@ -1,0 +1,37 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to Render
+        uses: render-actions/deploy@v1
+        env:
+          RENDER_API_KEY: rnd_bBfke5I8zvv9FWB2cVP7s5ZO18dJ
+        with:
+          service_id: ""
+          wait_for_deploy: true
+          create_if_not_exists: true
+          blueprint: |
+            services:
+              - type: web
+                name: fastapi-sqladmin-demo
+                env: python
+                region: oregon
+                buildCommand: pip install -r requirements.txt
+                startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+                envVars:
+                  - key: DATABASE_URL
+                    value: sqlite+aiosqlite:///./app.db
+                plan: free
+                autoDeploy: true
+                healthCheckPath: /health
