@@ -25,8 +25,12 @@ class JWTAuthenticationBackend(AuthenticationBackend):
     async def login(self, request: Request) -> bool:
         """处理登录 - 验证用户名密码"""
         # 获取表单数据
-        username = request.form.get("username")
-        password = request.form.get("password")
+        try:
+            form = await request.form()
+            username = form.get("username")
+            password = form.get("password")
+        except Exception:
+            return False
         
         if not username or not password:
             return False
