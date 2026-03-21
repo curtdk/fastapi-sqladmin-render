@@ -26,6 +26,9 @@ from auth import (
 
 # ==================== 应用配置 ====================
 
+# 密钥配置
+SECRET_KEY = os.getenv("SECRET_KEY", "your-super-secret-key-change-in-production-123456789")
+
 # 创建 FastAPI 应用
 app = FastAPI(
     title="FastAPI + SQLAdmin Demo",
@@ -52,7 +55,6 @@ app.add_middleware(
 
 # 数据库配置
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./app.db")
-SECRET_KEY = os.getenv("SECRET_KEY", "your-super-secret-key-change-in-production-123456789")
 
 # 创建异步引擎
 engine = create_async_engine(DATABASE_URL, echo=False)
