@@ -6,7 +6,7 @@ from datetime import datetime
 Base = declarative_base()
 
 class User(Base):
-    """用户模型"""
+    """用户模型 - 用于SQLAdmin管理"""
     __tablename__ = "users"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -15,7 +15,8 @@ class User(Base):
     full_name = Column(String(200))
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    is_admin = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)  # 超级管理员标志
+    is_superuser = Column(Boolean, default=False)  # 超级用户
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -24,7 +25,16 @@ class User(Base):
     orders = relationship("Order", back_populates="user")
     
     def __repr__(self):
-        return f"<User(id={self.id}, username='{self.username}')>"
+        return f"<User(id={self.id}, username='{self.username}', is_admin={self.is_admin})>"
+    
+    @property
+    def is_authenticated(self):
+        return True
+    
+    @property
+    def display_name(self):
+        return self.username or self.email
+
 
 class Product(Base):
     """产品模型"""
@@ -47,6 +57,7 @@ class Product(Base):
     def __repr__(self):
         return f"<Product(id={self.id}, name='{self.name}', price={self.price})>"
 
+
 class Order(Base):
     """订单模型"""
     __tablename__ = "orders"
@@ -67,6 +78,7 @@ class Order(Base):
     def __repr__(self):
         return f"<Order(id={self.id}, user_id={self.user_id}, total={self.total_amount})>"
 
+
 class OrderItem(Base):
     """订单项模型"""
     __tablename__ = "order_items"
@@ -83,6 +95,7 @@ class OrderItem(Base):
     
     def __repr__(self):
         return f"<OrderItem(id={self.id}, product={self.product_id}, quantity={self.quantity})>"
+
 
 # 示例数据模型 - 博客文章
 class Post(Base):
