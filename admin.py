@@ -23,25 +23,34 @@ class JWTAuthenticationBackend(AuthenticationBackend):
     """
     
     async def login(self, request: Request) -> bool:
-        """处理登录"""
-        # 从session获取token
-        token = request.session.get("token")
-        if not token:
+        """处理登录 - 验证用户名密码"""
+        # 获取表单数据
+        username = request.form.get("username")
+        password = request.form.get("password")
+        
+        if not username or not password:
             return False
         
-        # 验证token
-        token_data = await verify_token(token)
-        if not token_data:
-            return False
-        
-        # 验证用户存在且是管理员
+        # 验证用户名密码
         async with AsyncSessionLocal() as db:
-            user = await get_user_by_id(db, token_data.user_id)
+            from auth import authenticate_user, create_access_token
+            
+            user = await authenticate_user(db, username, password)
             if not user or not user.is_active or not user.is_admin:
                 return False
+            
+            # 创建token
+            token = create_access_token(
+                data={"sub": str(user.id), "username": user.username, "is_admin": user.is_admin}
+            )
+            
+            # 保存到session
+            request.session.update({
+                "token": token, 
+                "user_id": str(user.id),
+                "username": user.username
+            })
         
-        # 登录成功，保存token到session
-        request.session.update({"token": token, "user_id": str(token_data.user_id)})
         return True
 
     async def logout(self, request: Request) -> bool:
