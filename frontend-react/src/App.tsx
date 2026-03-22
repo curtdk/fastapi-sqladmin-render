@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import './App.css'
-import { Button } from './components/ui/button'
 import { RefreshCw, CheckCircle, XCircle, Plug } from 'lucide-react'
 
 interface ApiResponse {
@@ -71,34 +70,32 @@ function App() {
           </div>
         </div>
 
-        {/* API测试区域 */}
+        {/* API测试区域 - 使用Material Tailwind样式 */}
         <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 p-6 max-w-xl mx-auto mb-8">
           <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
             <Plug className="w-5 h-5" />
             后端API连接测试
           </h3>
           
-          {/* 测试按钮 */}
+          {/* 测试按钮 - Material Tailwind 风格按钮 */}
           <div className="flex justify-center mb-4">
-            <Button 
+            <button
               onClick={testApi}
-              variant="gradient"
-              size="lg"
               disabled={loading}
-              className="flex items-center gap-2"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {loading ? (
                 <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin" />
                   测试中...
                 </>
               ) : (
                 <>
-                  <Plug className="w-5 h-5" />
+                  <Plug className="w-4 h-4" />
                   点击测试 FastAPI 接口
                 </>
               )}
-            </Button>
+            </button>
           </div>
 
           {/* API返回结果 */}
@@ -139,11 +136,11 @@ function App() {
           )}
         </div>
 
-        {/* 购买按钮 */}
+        {/* 购买按钮 - Material Tailwind 风格 */}
         <div className="text-center">
-          <Button variant="gradient" size="lg" className="flex items-center gap-2 mx-auto">
+          <button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-3 px-8 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200">
             立即购买 Token
-          </Button>
+          </button>
         </div>
       </main>
 
