@@ -65,7 +65,12 @@ AsyncSessionLocal = sessionmaker(
 )
 
 # 创建 SQLAdmin 管理界面
-admin = Admin(app, engine)
+admin = Admin(
+    app, 
+    engine,
+    title="贝壳后台管理系统",
+    logo_url="https://f.tatagogo.com/favicon.ico"
+)
 
 # ==================== 首页 ====================
 
