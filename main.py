@@ -165,6 +165,59 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
+@app.post("/api/auth/admin-login", tags=["认证"])
+async def admin_login(
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    管理员登录 - 登录后可访问/admin
+    """
+    user = await authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user"
+        )
+    
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not an admin user"
+        )
+    
+    # 创建访问令牌
+    access_token = create_access_token(
+        data={"sub": str(user.id), "username": user.username, "is_admin": user.is_admin}
+    )
+    
+    # 将token保存到session (用于SQLAdmin)
+    request.session.update({
+        "token": access_token,
+        "user_id": str(user.id),
+        "username": user.username
+    })
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_admin": user.is_admin
+        },
+        "message": "登录成功，请访问 /admin"
+    }
+
+
 @app.post("/api/auth/logout", tags=["认证"])
 async def logout(current_user: User = Depends(get_current_active_user)):
     """

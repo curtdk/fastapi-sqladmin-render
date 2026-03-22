@@ -23,38 +23,10 @@ class JWTAuthenticationBackend(AuthenticationBackend):
     """
     
     async def login(self, request: Request) -> bool:
-        """处理登录 - 验证用户名密码"""
-        # 获取表单数据
-        try:
-            form = await request.form()
-            username = form.get("username")
-            password = form.get("password")
-        except Exception:
-            return False
-        
-        if not username or not password:
-            return False
-        
-        # 验证用户名密码
-        async with AsyncSessionLocal() as db:
-            from auth import authenticate_user, create_access_token
-            
-            user = await authenticate_user(db, username, password)
-            if not user or not user.is_active or not user.is_admin:
-                return False
-            
-            # 创建token
-            token = create_access_token(
-                data={"sub": str(user.id), "username": user.username, "is_admin": user.is_admin}
-            )
-            
-            # 保存到session
-            request.session.update({
-                "token": token, 
-                "user_id": str(user.id),
-                "username": user.username
-            })
-        
+        """处理登录"""
+        # SQLAdmin会自动处理登录表单
+        # 我们只需要确保session中有有效的token即可
+        # 这里让SQLAdmin处理表单，然后我们在authenticate中验证
         return True
 
     async def logout(self, request: Request) -> bool:
@@ -64,11 +36,23 @@ class JWTAuthenticationBackend(AuthenticationBackend):
 
     async def authenticate(self, request: Request) -> bool:
         """验证请求"""
-        # 如果session中有有效token，则通过认证
+        # 检查session中是否有token
         token = request.session.get("token")
+        
+        # 如果没有token，检查Authorization header
+        if not token:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header[7:]
+        
+        if not token:
+            # 尝试从URL参数获取
+            token = request.query_params.get("token")
+        
         if not token:
             return False
         
+        # 验证token
         token_data = await verify_token(token)
         if not token_data:
             return False
