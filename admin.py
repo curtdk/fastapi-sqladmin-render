@@ -164,6 +164,7 @@ class RBACModelView(ModelView):
     RBAC 权限控制混入
     自动根据用户角色控制：is_accessible、can_view、can_add、can_edit、can_delete
     """
+    is_async = False  # 使用同步 session_maker (sqladmin 默认行为)
     
     # 权限代码前缀（子类必须定义，如 "user"、"product"）
     permission_code_prefix: str = ""
@@ -229,62 +230,66 @@ class RBACModelView(ModelView):
     
     async def insert_model(self, request: Request, data: dict):
         """插入时记录日志"""
-        from auth import log_operation
+        from auth import log_operation, AsyncSessionLocal
         user = getattr(request.state, "user", None)
+        result = await super().insert_model(request, data)
         if user:
-            await log_operation(
-                db=await self._get_db(),
-                user_id=user.id,
-                username=user.username,
-                action="CREATE",
-                model=self.model.__name__,
-                description=f"新增 {self.model.__name__}",
-                request=request,
-                status="success",
-                details={"data": {k: v for k, v in data.items() if k != "hashed_password"}}
-            )
-        return await super().insert_model(request, data)
+            async with AsyncSessionLocal() as db:
+                await log_operation(
+                    db=db,
+                    user_id=user.id,
+                    username=user.username,
+                    action="CREATE",
+                    model=self.model.__name__,
+                    description=f"新增 {self.model.__name__}",
+                    request=request,
+                    status="success",
+                    details={"data": {k: v for k, v in data.items() if k != "hashed_password"}}
+                )
+        return result
     
     async def update_model(self, request: Request, pk: dict, data: dict):
         """更新时记录日志"""
-        from auth import log_operation
+        from auth import log_operation, AsyncSessionLocal
         user = getattr(request.state, "user", None)
+        result = await super().update_model(request, pk, data)
         if user:
-            await log_operation(
-                db=await self._get_db(),
-                user_id=user.id,
-                username=user.username,
-                action="UPDATE",
-                model=self.model.__name__,
-                object_id=pk,
-                description=f"编辑 {self.model.__name__}",
-                request=request,
-                status="success",
-                details={"data": {k: v for k, v in data.items() if k != "hashed_password"}}
-            )
-        return await super().update_model(request, pk, data)
+            async with AsyncSessionLocal() as db:
+                await log_operation(
+                    db=db,
+                    user_id=user.id,
+                    username=user.username,
+                    action="UPDATE",
+                    model=self.model.__name__,
+                    object_id=pk,
+                    description=f"编辑 {self.model.__name__}",
+                    request=request,
+                    status="success",
+                    details={"data": {k: v for k, v in data.items() if k != "hashed_password"}}
+                )
+        return result
     
     async def delete_model(self, request: Request, pk: dict):
         """删除时记录日志"""
-        from auth import log_operation
+        from auth import log_operation, AsyncSessionLocal
         user = getattr(request.state, "user", None)
+        result = await super().delete_model(request, pk)
         if user:
-            await log_operation(
-                db=await self._get_db(),
-                user_id=user.id,
-                username=user.username,
-                action="DELETE",
-                model=self.model.__name__,
-                object_id=pk,
-                description=f"删除 {self.model.__name__}",
-                request=request,
-                status="success"
-            )
-        return await super().delete_model(request, pk)
+            async with AsyncSessionLocal() as db:
+                await log_operation(
+                    db=db,
+                    user_id=user.id,
+                    username=user.username,
+                    action="DELETE",
+                    model=self.model.__name__,
+                    object_id=pk,
+                    description=f"删除 {self.model.__name__}",
+                    request=request,
+                    status="success"
+                )
+        return result
     
-    async def _get_db(self) -> AsyncSession:
-        async with AsyncSessionLocal() as session:
-            yield session
+    # _get_db removed - use parent class implementation which works with is_async=False
 
 
 # ==================== Admin 视图 ====================

@@ -2,7 +2,7 @@
 RBAC 权限模型
 包含：角色、权限、用户-角色关联
 """
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Table, Enum as SAEnum
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Table, Enum as SAEnum, Numeric
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -75,7 +75,7 @@ class Product(Base, BaseModel):
     
     name = Column(String(200), nullable=False)
     description = Column(Text)
-    price = Column(Float, nullable=False)
+    price = Column(Numeric(10, 2, asdecimal=False), nullable=False)
     stock = Column(Integer, default=0)
     category = Column(String(100))
     is_available = Column(Boolean, default=True)
@@ -93,7 +93,7 @@ class Order(Base, BaseModel):
     __tablename__ = "orders"
     
     user_id = Column(Integer, ForeignKey("users.id"))
-    total_amount = Column(Float, nullable=False)
+    total_amount = Column(Numeric(10, 2, asdecimal=False), nullable=False)
     status = Column(String(50), default="pending")
     shipping_address = Column(Text)
     notes = Column(Text)
@@ -112,7 +112,7 @@ class OrderItem(Base, BaseModel):
     order_id = Column(Integer, ForeignKey("orders.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
     quantity = Column(Integer, nullable=False)
-    unit_price = Column(Float, nullable=False)
+    unit_price = Column(Numeric(10, 2, asdecimal=False), nullable=False)
     
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")

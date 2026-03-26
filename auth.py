@@ -160,7 +160,23 @@ async def log_operation(
 ):
     """记录操作日志"""
     from models import OperationLog
-    
+    from datetime import date, datetime
+    from decimal import Decimal
+
+    def _clean_value(v):
+        """清理值：Decimal -> str, datetime -> str, 其他原样返回"""
+        if isinstance(v, Decimal):
+            return str(v)
+        if isinstance(v, (datetime, date)):
+            return v.isoformat()
+        if isinstance(v, dict):
+            return {kk: _clean_value(vv) for kk, vv in v.items()}
+        if isinstance(v, (list, tuple)):
+            return [_clean_value(i) for i in v]
+        return v
+
+    cleaned_details = _clean_value(details) if details else None
+
     log = OperationLog(
         user_id=user_id,
         username=username,
@@ -171,7 +187,7 @@ async def log_operation(
         ip_address=request.client.host if request else None,
         user_agent=request.headers.get("user-agent") if request else None,
         status=status,
-        details=json.dumps(details) if details else None
+        details=json.dumps(cleaned_details) if cleaned_details else None
     )
     db.add(log)
     await db.commit()
